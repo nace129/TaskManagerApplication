@@ -11,15 +11,19 @@ function PrivateRoute({ children, requireAdmin = false }: { children: React.Reac
   const { user, loading } = useAuthStore();
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   if (requireAdmin && user.role !== 'admin') {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -30,7 +34,7 @@ function App() {
 
   useEffect(() => {
     checkUser();
-  }, []);
+  }, [checkUser]);
 
   return (
     <BrowserRouter>
@@ -50,9 +54,10 @@ function App() {
             </PrivateRoute>
           } />
         </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
-export default App;
+export default App

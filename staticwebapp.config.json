@@ -1,6 +1,7 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html"
+    "rewrite": "/index.html",
+    "exclude": ["/images/*", "/css/*", "/js/*", "/*.{svg,png,jpg,gif,webp}"]
   },
   "routes": [
     {
@@ -11,8 +12,11 @@
   ],
   "globalHeaders": {
     "cache-control": "no-cache",
-    "Content-Security-Policy": "default-src https: 'unsafe-eval' 'unsafe-inline'; object-src 'none'",
+    "Content-Security-Policy": "default-src https: 'unsafe-eval' 'unsafe-inline' data:; img-src https: data:; connect-src https: wss:; object-src 'none'",
     "X-Frame-Options": "DENY",
     "X-Content-Type-Options": "nosniff"
+  },
+  "mimeTypes": {
+    ".json": "text/json"
   }
 }

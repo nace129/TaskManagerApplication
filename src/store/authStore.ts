@@ -20,12 +20,38 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
   signIn: async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      set({
+        user: {
+          id: data.user.id,
+          email: data.user.email!,
+          role: profile?.role || 'user'
+        }
+      });
+    }
   },
   signUp: async (email, password) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error, data } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
+    
+    if (data.user) {
+      set({
+        user: {
+          id: data.user.id,
+          email: data.user.email!,
+          role: 'user'
+        }
+      });
+    }
   },
   signOut: async () => {
     const { error } = await supabase.auth.signOut();
@@ -33,24 +59,29 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null });
   },
   checkUser: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
       
-      set({
-        user: {
-          id: user.id,
-          email: user.email!,
-          role: profile?.role || 'user'
-        },
-        loading: false
-      });
-    } else {
-      set({ user: null, loading: false });
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        set({
+          user: {
+            id: user.id,
+            email: user.email!,
+            role: profile?.role || 'user'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error checking user:', error);
+      set({ user: null });
+    } finally {
+      set({ loading: false });
     }
   }
 }));
